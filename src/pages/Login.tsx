@@ -79,7 +79,7 @@ const Login = () => {
                 <Input
                   id="userId"
                   type="email"
-                  placeholder="mkshopping@gmail.com"
+                  placeholder="user id"
                   value={credentials.userId}
                   onChange={(e) => setCredentials({ ...credentials, userId: e.target.value })}
                   className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:bg-white/20 transition-all duration-300"
@@ -92,7 +92,7 @@ const Login = () => {
                 <Input
                   id="password"
                   type="password"
-                  placeholder="mkshopping123"
+                  placeholder="password"
                   value={credentials.password}
                   onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
                   className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:bg-white/20 transition-all duration-300"
