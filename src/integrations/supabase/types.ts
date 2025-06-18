@@ -9,10 +9,94 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      products: {
+        Row: {
+          category: string
+          created_at: string | null
+          id: string
+          name: string
+          price: number
+          total_stock: number
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          id?: string
+          name: string
+          price: number
+          total_stock?: number
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          id?: string
+          name?: string
+          price?: number
+          total_stock?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      sales: {
+        Row: {
+          created_at: string | null
+          id: string
+          product_id: string | null
+          quantity: number
+          sale_date: string | null
+          sale_price: number
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          product_id?: string | null
+          quantity?: number
+          sale_date?: string | null
+          sale_price: number
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          product_id?: string | null
+          quantity?: number
+          sale_date?: string | null
+          sale_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "sales_analytics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
-      [_ in never]: never
+      sales_analytics: {
+        Row: {
+          category: string | null
+          id: string | null
+          monthly_sales: number | null
+          name: string | null
+          price: number | null
+          remaining_stock: number | null
+          today_sales: number | null
+          total_stock: number | null
+          yearly_sales: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never

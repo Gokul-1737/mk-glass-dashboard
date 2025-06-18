@@ -3,15 +3,28 @@ import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import GlassCard from '@/components/GlassCard';
 import { TrendingUp, Package, ShoppingCart, DollarSign } from 'lucide-react';
+import { useSalesAnalytics } from '@/hooks/useProducts';
+import { useTodaySales, useMonthlySales, useYearlySales } from '@/hooks/useSales';
 
 const Dashboard = () => {
+  const { data: analytics } = useSalesAnalytics();
+  const { data: todaySales } = useTodaySales();
+  const { data: monthlySales } = useMonthlySales();
+  const { data: yearlySales } = useYearlySales();
+
+  const totalProducts = analytics?.length || 0;
+  const todayUnits = analytics?.reduce((sum, item) => sum + item.today_sales, 0) || 0;
+  const monthlyUnits = analytics?.reduce((sum, item) => sum + item.monthly_sales, 0) || 0;
+  const todayRevenue = todaySales?.reduce((sum, sale) => sum + (sale.quantity * sale.sale_price), 0) || 0;
+
   const stats = [
-    { title: 'Total Products', value: '156', icon: Package, color: 'from-blue-500 to-purple-600' },
-    { title: "Today's Sales", value: '47', icon: ShoppingCart, color: 'from-green-500 to-teal-600' },
-    { title: 'Monthly Sales', value: '1,234', icon: TrendingUp, color: 'from-orange-500 to-red-600' },
-    { title: 'Revenue', value: '$12,450', icon: DollarSign, color: 'from-purple-500 to-pink-600' },
+    { title: 'Total Products', value: totalProducts.toString(), icon: Package, color: 'from-blue-500 to-purple-600' },
+    { title: "Today's Sales", value: todayUnits.toString(), icon: ShoppingCart, color: 'from-green-500 to-teal-600' },
+    { title: 'Monthly Sales', value: monthlyUnits.toString(), icon: TrendingUp, color: 'from-orange-500 to-red-600' },
+    { title: 'Today Revenue', value: `$${todayRevenue.toLocaleString()}`, icon: DollarSign, color: 'from-purple-500 to-pink-600' },
   ];
 
+  // Weekly sales data (mock data for demo)
   const salesData = [
     { name: 'Mon', sales: 24 },
     { name: 'Tue', sales: 31 },
@@ -22,16 +35,22 @@ const Dashboard = () => {
     { name: 'Sun', sales: 39 },
   ];
 
-  const pieData = [
-    { name: 'Electronics', value: 35, color: '#8B5CF6' },
-    { name: 'Clothing', value: 28, color: '#06B6D4' },
-    { name: 'Books', value: 20, color: '#10B981' },
-    { name: 'Home & Garden', value: 17, color: '#F59E0B' },
-  ];
+  // Category distribution from analytics
+  const categoryData = analytics?.reduce((acc, product) => {
+    const existing = acc.find(item => item.name === product.category);
+    if (existing) {
+      existing.value += product.monthly_sales;
+    } else {
+      acc.push({ name: product.category, value: product.monthly_sales });
+    }
+    return acc;
+  }, [] as { name: string; value: number }[]) || [];
+
+  const pieColors = ['#8B5CF6', '#06B6D4', '#10B981', '#F59E0B', '#EF4444'];
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
+    <div className="space-y-8 animate-fade-in">
+      <div className="flex items-center justify-between animate-slide-in-top">
         <h1 className="text-3xl font-bold text-white">Dashboard</h1>
         <p className="text-white/70">Welcome to MK Shopping Portal</p>
       </div>
@@ -39,7 +58,11 @@ const Dashboard = () => {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, index) => (
-          <GlassCard key={index} className="p-6">
+          <GlassCard 
+            key={index} 
+            className="p-6 hover:scale-105 transition-all duration-300 animate-fade-in-up"
+            style={{ animationDelay: `${index * 0.1}s` }}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-white/70 text-sm">{stat.title}</p>
@@ -56,8 +79,8 @@ const Dashboard = () => {
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Sales Chart */}
-        <GlassCard className="p-6">
-          <h3 className="text-xl font-semibold text-white mb-4">Weekly Sales</h3>
+        <GlassCard className="p-6 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+          <h3 className="text-xl font-semibold text-white mb-4">Weekly Sales Trend</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={salesData}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
@@ -83,12 +106,12 @@ const Dashboard = () => {
         </GlassCard>
         
         {/* Category Distribution */}
-        <GlassCard className="p-6">
+        <GlassCard className="p-6 animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
           <h3 className="text-xl font-semibold text-white mb-4">Sales by Category</h3>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
-                data={pieData}
+                data={categoryData}
                 cx="50%"
                 cy="50%"
                 innerRadius={60}
@@ -96,8 +119,8 @@ const Dashboard = () => {
                 paddingAngle={5}
                 dataKey="value"
               >
-                {pieData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
+                {categoryData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={pieColors[index % pieColors.length]} />
                 ))}
               </Pie>
               <Tooltip 
@@ -111,13 +134,16 @@ const Dashboard = () => {
             </PieChart>
           </ResponsiveContainer>
           <div className="mt-4 space-y-2">
-            {pieData.map((item, index) => (
+            {categoryData.map((item, index) => (
               <div key={index} className="flex items-center justify-between">
                 <div className="flex items-center">
-                  <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: item.color }} />
+                  <div 
+                    className="w-3 h-3 rounded-full mr-2" 
+                    style={{ backgroundColor: pieColors[index % pieColors.length] }} 
+                  />
                   <span className="text-white/70 text-sm">{item.name}</span>
                 </div>
-                <span className="text-white font-medium">{item.value}%</span>
+                <span className="text-white font-medium">{item.value}</span>
               </div>
             ))}
           </div>

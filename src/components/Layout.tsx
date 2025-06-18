@@ -1,7 +1,8 @@
 
 import React from 'react';
 import { useLocation, Link } from 'react-router-dom';
-import { Home, Package, TrendingUp, Calendar, FileDown, LogOut } from 'lucide-react';
+import { Home, Package, TrendingUp, Calendar, FileDown } from 'lucide-react';
+import TopMenuBar from './TopMenuBar';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -19,11 +20,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { name: 'Export Data', href: '/export', icon: FileDown },
   ];
 
-  const handleLogout = () => {
-    localStorage.removeItem('mk_shopping_auth');
-    window.location.href = '/';
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 relative">
       {/* Background Image */}
@@ -34,8 +30,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         }}
       />
       
+      {/* Top Menu Bar */}
+      <TopMenuBar />
+      
       {/* Sidebar */}
-      <div className="fixed inset-y-0 left-0 w-64 bg-white/10 backdrop-blur-md border-r border-white/20 z-50">
+      <div className="fixed inset-y-0 left-0 w-64 bg-white/10 backdrop-blur-md border-r border-white/20 z-40 mt-16 animate-slide-in-left">
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center justify-center h-16 px-4 border-b border-white/20">
@@ -43,18 +42,19 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </div>
           
           {/* Navigation */}
-          <nav className="flex-1 px-4 py-6 space-y-2">
-            {navigation.map((item) => {
+          <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+            {navigation.map((item, index) => {
               const isActive = location.pathname === item.href;
               return (
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 ${
+                  className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-300 transform hover:scale-105 animate-fade-in ${
                     isActive
-                      ? 'bg-white/20 text-white border border-white/30'
+                      ? 'bg-white/20 text-white border border-white/30 shadow-lg'
                       : 'text-white/70 hover:text-white hover:bg-white/10'
                   }`}
+                  style={{ animationDelay: `${index * 0.1}s` }}
                 >
                   <item.icon className="w-5 h-5 mr-3" />
                   {item.name}
@@ -62,24 +62,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               );
             })}
           </nav>
-          
-          {/* Logout */}
-          <div className="p-4 border-t border-white/20">
-            <button
-              onClick={handleLogout}
-              className="flex items-center w-full px-4 py-3 text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200"
-            >
-              <LogOut className="w-5 h-5 mr-3" />
-              Logout
-            </button>
-          </div>
         </div>
       </div>
       
       {/* Main Content */}
-      <div className="ml-64 min-h-screen">
+      <div className="ml-64 mt-16 min-h-screen">
         <main className="p-8 relative z-10">
-          {children}
+          <div className="animate-fade-in-up">
+            {children}
+          </div>
         </main>
       </div>
     </div>

@@ -4,27 +4,32 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import GlassCard from '@/components/GlassCard';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, TrendingUp, ShoppingCart } from 'lucide-react';
+import { useTodaySales } from '@/hooks/useSales';
+import { useSalesAnalytics } from '@/hooks/useProducts';
 
 const TodaySales = () => {
-  const todaySalesData = [
-    { product: 'iPhone 15 Pro', sold: 5, revenue: 4995, category: 'Electronics' },
-    { product: 'Nike Air Max', sold: 8, revenue: 1032, category: 'Footwear' },
-    { product: 'Adidas Ultraboost', sold: 6, revenue: 1080, category: 'Footwear' },
-    { product: 'Samsung Galaxy Book', sold: 3, revenue: 3897, category: 'Electronics' },
-    { product: 'MacBook Pro', sold: 2, revenue: 4998, category: 'Electronics' },
-  ];
+  const { data: todaySalesData, isLoading: salesLoading } = useTodaySales();
+  const { data: analytics, isLoading: analyticsLoading } = useSalesAnalytics();
 
-  const totalSales = todaySalesData.reduce((sum, item) => sum + item.sold, 0);
-  const totalRevenue = todaySalesData.reduce((sum, item) => sum + item.revenue, 0);
+  if (salesLoading || analyticsLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="w-8 h-8 border-4 border-white/30 border-t-white rounded-full animate-spin" />
+      </div>
+    );
+  }
 
-  const chartData = todaySalesData.map(item => ({
-    name: item.product.split(' ').slice(0, 2).join(' '),
-    sales: item.sold
-  }));
+  const totalSales = analytics?.reduce((sum, item) => sum + item.today_sales, 0) || 0;
+  const totalRevenue = todaySalesData?.reduce((sum, item) => sum + (item.quantity * item.sale_price), 0) || 0;
+
+  const chartData = analytics?.map(item => ({
+    name: item.name.split(' ').slice(0, 2).join(' '),
+    sales: item.today_sales
+  })).filter(item => item.sales > 0) || [];
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
+    <div className="space-y-8 animate-fade-in">
+      <div className="flex items-center justify-between animate-slide-in-top">
         <h1 className="text-3xl font-bold text-white">Today's Sales</h1>
         <div className="flex items-center text-white/70">
           <Calendar className="w-5 h-5 mr-2" />
@@ -34,7 +39,7 @@ const TodaySales = () => {
       
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <GlassCard className="p-6">
+        <GlassCard className="p-6 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-white/70 text-sm">Total Units Sold</p>
@@ -46,7 +51,7 @@ const TodaySales = () => {
           </div>
         </GlassCard>
         
-        <GlassCard className="p-6">
+        <GlassCard className="p-6 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-white/70 text-sm">Total Revenue</p>
@@ -58,11 +63,13 @@ const TodaySales = () => {
           </div>
         </GlassCard>
         
-        <GlassCard className="p-6">
+        <GlassCard className="p-6 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-white/70 text-sm">Average Order Value</p>
-              <p className="text-2xl font-bold text-white mt-1">${Math.round(totalRevenue / totalSales)}</p>
+              <p className="text-2xl font-bold text-white mt-1">
+                ${totalSales > 0 ? Math.round(totalRevenue / totalSales) : 0}
+              </p>
             </div>
             <div className="p-3 rounded-lg bg-gradient-to-r from-blue-500 to-cyan-600">
               <Calendar className="w-6 h-6 text-white" />
@@ -73,7 +80,7 @@ const TodaySales = () => {
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Chart */}
-        <GlassCard className="p-6">
+        <GlassCard className="p-6 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
           <h3 className="text-xl font-semibold text-white mb-4">Sales by Product</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={chartData}>
@@ -100,23 +107,31 @@ const TodaySales = () => {
         </GlassCard>
         
         {/* Sales List */}
-        <GlassCard className="p-6">
-          <h3 className="text-xl font-semibold text-white mb-4">Product Sales Details</h3>
-          <div className="space-y-4">
-            {todaySalesData.map((item, index) => (
-              <div key={index} className="flex items-center justify-between p-4 bg-white/5 rounded-lg">
+        <GlassCard className="p-6 animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
+          <h3 className="text-xl font-semibold text-white mb-4">Today's Sales Details</h3>
+          <div className="space-y-4 max-h-80 overflow-y-auto">
+            {todaySalesData?.map((sale, index) => (
+              <div 
+                key={sale.id} 
+                className="flex items-center justify-between p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-all duration-200"
+              >
                 <div>
-                  <h4 className="font-medium text-white">{item.product}</h4>
+                  <h4 className="font-medium text-white">{sale.products.name}</h4>
                   <Badge variant="secondary" className="mt-1 bg-white/10 text-white/70">
-                    {item.category}
+                    {sale.products.category}
                   </Badge>
                 </div>
                 <div className="text-right">
-                  <p className="text-white font-semibold">{item.sold} units</p>
-                  <p className="text-green-400 text-sm">${item.revenue}</p>
+                  <p className="text-white font-semibold">{sale.quantity} units</p>
+                  <p className="text-green-400 text-sm">${sale.sale_price}</p>
                 </div>
               </div>
             ))}
+            {(!todaySalesData || todaySalesData.length === 0) && (
+              <div className="text-center py-8 text-white/60">
+                No sales recorded today yet.
+              </div>
+            )}
           </div>
         </GlassCard>
       </div>

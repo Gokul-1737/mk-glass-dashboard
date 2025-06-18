@@ -1,190 +1,204 @@
 
-import React, { useState } from 'react';
-import GlassCard from '@/components/GlassCard';
+import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Download, FileSpreadsheet, Calendar, Package } from 'lucide-react';
+import GlassCard from '@/components/GlassCard';
+import { useSalesAnalytics } from '@/hooks/useProducts';
+import { useTodaySales, useMonthlySales, useYearlySales } from '@/hooks/useSales';
 import { toast } from 'sonner';
 
 const Export = () => {
-  const [selectedData, setSelectedData] = useState({
-    products: true,
-    todaySales: true,
-    monthlySales: true,
-    yearlySales: true,
-    inventory: false,
-    customers: false,
-  });
+  const { data: analytics } = useSalesAnalytics();
+  const { data: todaySales } = useTodaySales();
+  const { data: monthlySales } = useMonthlySales();
+  const { data: yearlySales } = useYearlySales();
 
-  const [dateRange, setDateRange] = useState('all');
-  const [format, setFormat] = useState('xlsx');
+  const exportToCSV = (data: any[], filename: string) => {
+    if (!data || data.length === 0) {
+      toast.error('No data available to export');
+      return;
+    }
 
-  const handleExport = () => {
-    toast.success(`Exporting data as ${format.toUpperCase()}... Download will start shortly.`);
-    console.log('Export configuration:', { selectedData, dateRange, format });
+    const headers = Object.keys(data[0]).join(',');
+    const csv = [
+      headers,
+      ...data.map(row => Object.values(row).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${filename}_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+    
+    toast.success(`${filename} exported successfully!`);
+  };
+
+  const exportProducts = () => {
+    if (!analytics) return;
+    
+    const productData = analytics.map(product => ({
+      ID: product.id,
+      Name: product.name,
+      Category: product.category,
+      Price: product.price,
+      'Total Stock': product.total_stock,
+      'Today Sales': product.today_sales,
+      'Monthly Sales': product.monthly_sales,
+      'Yearly Sales': product.yearly_sales,
+      'Remaining Stock': product.remaining_stock
+    }));
+    
+    exportToCSV(productData, 'products_analytics');
+  };
+
+  const exportTodaySales = () => {
+    if (!todaySales) return;
+    
+    const salesData = todaySales.map(sale => ({
+      'Sale ID': sale.id,
+      'Product Name': sale.products.name,
+      Category: sale.products.category,
+      Quantity: sale.quantity,
+      'Sale Price': sale.sale_price,
+      'Sale Date': sale.sale_date,
+      'Created At': sale.created_at
+    }));
+    
+    exportToCSV(salesData, 'today_sales');
+  };
+
+  const exportMonthlySales = () => {
+    if (!monthlySales) return;
+    
+    const salesData = monthlySales.map(sale => ({
+      'Sale ID': sale.id,
+      'Product Name': sale.products.name,
+      Category: sale.products.category,
+      Quantity: sale.quantity,
+      'Sale Price': sale.sale_price,
+      'Sale Date': sale.sale_date,
+      'Created At': sale.created_at
+    }));
+    
+    exportToCSV(salesData, 'monthly_sales');
+  };
+
+  const exportYearlySales = () => {
+    if (!yearlySales) return;
+    
+    const salesData = yearlySales.map(sale => ({
+      'Sale ID': sale.id,
+      'Product Name': sale.products.name,
+      Category: sale.products.category,
+      Quantity: sale.quantity,
+      'Sale Price': sale.sale_price,
+      'Sale Date': sale.sale_date,
+      'Created At': sale.created_at
+    }));
+    
+    exportToCSV(salesData, 'yearly_sales');
   };
 
   const exportOptions = [
-    { key: 'products', label: 'Product Information', icon: Package },
-    { key: 'todaySales', label: "Today's Sales Data", icon: Calendar },
-    { key: 'monthlySales', label: 'Monthly Sales Data', icon: Calendar },
-    { key: 'yearlySales', label: 'Yearly Sales Data', icon: Calendar },
-    { key: 'inventory', label: 'Inventory Levels', icon: Package },
-    { key: 'customers', label: 'Customer Data', icon: Package },
+    {
+      title: 'Products Analytics',
+      description: 'Export complete product data with sales analytics',
+      icon: Package,
+      onClick: exportProducts,
+      data: analytics,
+      color: 'from-blue-500 to-purple-600'
+    },
+    {
+      title: "Today's Sales",
+      description: 'Export all sales transactions from today',
+      icon: Calendar,
+      onClick: exportTodaySales,
+      data: todaySales,
+      color: 'from-green-500 to-teal-600'
+    },
+    {
+      title: 'Monthly Sales',
+      description: 'Export all sales from current month',
+      icon: FileSpreadsheet,
+      onClick: exportMonthlySales,
+      data: monthlySales,
+      color: 'from-orange-500 to-red-600'
+    },
+    {
+      title: 'Yearly Sales',
+      description: 'Export all sales from current year',
+      icon: Download,
+      onClick: exportYearlySales,
+      data: yearlySales,
+      color: 'from-purple-500 to-pink-600'
+    }
   ];
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-white">Export Data</h1>
-        <div className="flex items-center text-white/70">
-          <FileSpreadsheet className="w-5 h-5 mr-2" />
-          Data Export Center
-        </div>
+    <div className="space-y-8 animate-fade-in">
+      <div className="animate-slide-in-top">
+        <h1 className="text-3xl font-bold text-white mb-2">Export Data</h1>
+        <p className="text-white/70">Download your data in CSV format for external analysis</p>
       </div>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Export Configuration */}
-        <div className="lg:col-span-2 space-y-6">
-          <GlassCard className="p-6">
-            <h3 className="text-xl font-semibold text-white mb-4">Select Data to Export</h3>
-            <div className="space-y-4">
-              {exportOptions.map((option) => (
-                <div key={option.key} className="flex items-center space-x-3">
-                  <Checkbox
-                    id={option.key}
-                    checked={selectedData[option.key as keyof typeof selectedData]}
-                    onCheckedChange={(checked) =>
-                      setSelectedData(prev => ({ ...prev, [option.key]: checked }))
-                    }
-                    className="data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600"
-                  />
-                  <div className="flex items-center">
-                    <option.icon className="w-4 h-4 text-white/70 mr-2" />
-                    <label htmlFor={option.key} className="text-white cursor-pointer">
-                      {option.label}
-                    </label>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </GlassCard>
-          
-          <GlassCard className="p-6">
-            <h3 className="text-xl font-semibold text-white mb-4">Export Settings</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-white/70 text-sm mb-2">Date Range</label>
-                <Select value={dateRange} onValueChange={setDateRange}>
-                  <SelectTrigger className="bg-white/10 border-white/20 text-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Time</SelectItem>
-                    <SelectItem value="today">Today</SelectItem>
-                    <SelectItem value="week">This Week</SelectItem>
-                    <SelectItem value="month">This Month</SelectItem>
-                    <SelectItem value="year">This Year</SelectItem>
-                    <SelectItem value="custom">Custom Range</SelectItem>
-                  </SelectContent>
-                </Select>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {exportOptions.map((option, index) => (
+          <GlassCard 
+            key={option.title}
+            className="p-6 hover:scale-105 transition-all duration-300 animate-fade-in-up"
+            style={{ animationDelay: `${index * 0.1}s` }}
+          >
+            <div className="flex items-start justify-between mb-4">
+              <div className={`p-3 rounded-lg bg-gradient-to-r ${option.color}`}>
+                <option.icon className="w-6 h-6 text-white" />
               </div>
-              
-              <div>
-                <label className="block text-white/70 text-sm mb-2">File Format</label>
-                <Select value={format} onValueChange={setFormat}>
-                  <SelectTrigger className="bg-white/10 border-white/20 text-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="xlsx">Excel (.xlsx)</SelectItem>
-                    <SelectItem value="csv">CSV (.csv)</SelectItem>
-                    <SelectItem value="pdf">PDF (.pdf)</SelectItem>
-                    <SelectItem value="json">JSON (.json)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </GlassCard>
-        </div>
-        
-        {/* Export Summary */}
-        <div className="space-y-6">
-          <GlassCard className="p-6">
-            <h3 className="text-xl font-semibold text-white mb-4">Export Summary</h3>
-            <div className="space-y-4">
-              <div className="flex justify-between">
-                <span className="text-white/70">Selected Items:</span>
-                <span className="text-white font-medium">
-                  {Object.values(selectedData).filter(Boolean).length}
+              <div className="text-right">
+                <span className="text-white/60 text-sm">
+                  {option.data?.length || 0} records
                 </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-white/70">Date Range:</span>
-                <span className="text-white font-medium capitalize">{dateRange}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-white/70">Format:</span>
-                <span className="text-white font-medium">{format.toUpperCase()}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-white/70">Est. File Size:</span>
-                <span className="text-white font-medium">~2.4 MB</span>
               </div>
             </div>
             
+            <h3 className="text-lg font-semibold text-white mb-2">{option.title}</h3>
+            <p className="text-white/70 text-sm mb-4">{option.description}</p>
+            
             <Button
-              onClick={handleExport}
-              className="w-full mt-6 bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700"
-              disabled={Object.values(selectedData).every(v => !v)}
+              onClick={option.onClick}
+              disabled={!option.data || option.data.length === 0}
+              className={`w-full bg-gradient-to-r ${option.color} hover:opacity-90 transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none`}
             >
               <Download className="w-4 h-4 mr-2" />
-              Export Data
+              Export CSV
             </Button>
           </GlassCard>
-          
-          <GlassCard className="p-6">
-            <h3 className="text-lg font-semibold text-white mb-3">Quick Actions</h3>
-            <div className="space-y-3">
-              <Button
-                variant="outline"
-                className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20"
-                onClick={() => {
-                  setSelectedData({
-                    products: true,
-                    todaySales: true,
-                    monthlySales: true,
-                    yearlySales: true,
-                    inventory: true,
-                    customers: true,
-                  });
-                  toast.info('All data selected for export');
-                }}
-              >
-                Select All
-              </Button>
-              <Button
-                variant="outline"
-                className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20"
-                onClick={() => {
-                  setSelectedData({
-                    products: true,
-                    todaySales: true,
-                    monthlySales: true,
-                    yearlySales: true,
-                    inventory: false,
-                    customers: false,
-                  });
-                  toast.info('Sales data selected for export');
-                }}
-              >
-                Sales Data Only
-              </Button>
-            </div>
-          </GlassCard>
-        </div>
+        ))}
       </div>
+
+      {/* Export Summary */}
+      <GlassCard className="p-6 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+        <h3 className="text-xl font-semibold text-white mb-4">Export Summary</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="text-center">
+            <p className="text-2xl font-bold text-blue-400">{analytics?.length || 0}</p>
+            <p className="text-white/70 text-sm">Products</p>
+          </div>
+          <div className="text-center">
+            <p className="text-2xl font-bold text-green-400">{todaySales?.length || 0}</p>
+            <p className="text-white/70 text-sm">Today's Sales</p>
+          </div>
+          <div className="text-center">
+            <p className="text-2xl font-bold text-orange-400">{monthlySales?.length || 0}</p>
+            <p className="text-white/70 text-sm">Monthly Sales</p>
+          </div>
+          <div className="text-center">
+            <p className="text-2xl font-bold text-purple-400">{yearlySales?.length || 0}</p>
+            <p className="text-white/70 text-sm">Yearly Sales</p>
+          </div>
+        </div>
+      </GlassCard>
     </div>
   );
 };
