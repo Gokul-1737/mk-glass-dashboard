@@ -39,7 +39,7 @@ const Login = () => {
       <div 
         className="absolute inset-0 opacity-30 bg-cover bg-center animate-pulse"
         style={{
-          backgroundImage: `url('https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80')`
+          backgroundImage: `url('https://res.cloudinary.com/dpkkna5db/image/upload/v1750253510/pranow_copy_2_wo3dry.jpg')`
         }}
       />
       
