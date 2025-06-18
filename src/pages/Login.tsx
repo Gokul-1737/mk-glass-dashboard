@@ -136,14 +136,7 @@ const Login = () => {
             </div>
           </form>
 
-          {/* Demo Credentials */}
-          <div className="mt-6 p-3 bg-white/5 rounded-lg animate-fade-in">
-            <p className="text-xs text-white/60 text-center">
-              Demo: mkshopping@gmail.com / mkshopping123
-            </p>
-          </div>
-        </GlassCard>
-      </div>
+
     </div>
   );
 };
