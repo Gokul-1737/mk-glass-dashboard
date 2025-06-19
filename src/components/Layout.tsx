@@ -12,6 +12,7 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
@@ -24,11 +25,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 relative overflow-hidden">
-      {/* Login Background Image for Dashboard */}
+      {/* Online Shopping Background */}
       <div 
-        className="absolute inset-0 opacity-20 bg-cover bg-center animate-pulse-slow"
+        className="absolute inset-0 opacity-15 bg-cover bg-center animate-pulse-slow"
         style={{
-          backgroundImage: `url('https://res.cloudinary.com/dpkkna5db/image/upload/v1750253510/pranow_copy_2_wo3dry.jpg')`
+          backgroundImage: `url('https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2340&q=80')`
         }}
       />
       
@@ -50,12 +51,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         ))}
       </div>
       
-      {/* Top Menu Bar with enhanced animation */}
+      {/* Top Menu Bar */}
       <div className="relative z-20">
-        <TopMenuBar />
+        <TopMenuBar 
+          sidebarCollapsed={sidebarCollapsed}
+          onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
+        />
       </div>
       
-      {/* Smart Animated Mobile Menu Button */}
+      {/* Mobile Menu Button */}
       <button
         onClick={() => setSidebarOpen(!sidebarOpen)}
         className="lg:hidden fixed top-20 left-4 z-50 p-3 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-white transition-all duration-500 hover:scale-110 hover:rotate-90 hover:bg-white/20 animate-glow"
@@ -65,22 +69,28 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </div>
       </button>
       
-      {/* Smart Animated Sidebar */}
-      <div className={`fixed inset-y-0 left-0 w-64 bg-white/10 backdrop-blur-md border-r border-white/20 z-40 mt-16 transform transition-all duration-500 ease-out ${
+      {/* Collapsible Sidebar */}
+      <div className={`fixed inset-y-0 left-0 bg-white/10 backdrop-blur-md border-r border-white/20 z-40 mt-16 transform transition-all duration-500 ease-out ${
         sidebarOpen ? 'translate-x-0 scale-100' : '-translate-x-full scale-95'
-      } lg:translate-x-0 lg:scale-100 animate-slide-in-left`}>
+      } lg:translate-x-0 lg:scale-100 animate-slide-in-left ${
+        sidebarCollapsed ? 'lg:w-20' : 'lg:w-64'
+      } w-64`}>
         <div className="flex flex-col h-full">
-          {/* 3D Animated Logo */}
+          {/* Logo */}
           <div className="flex items-center justify-center h-16 px-4 border-b border-white/20 animate-bounce-in">
-            <div className="relative group">
-              <h1 className="text-xl sm:text-2xl font-bold text-white transform transition-all duration-300 hover:scale-110 hover:rotate-3 animate-glow">
-                🏪 MK Shopping
-              </h1>
+            <div className="relative group cursor-pointer" onClick={() => setSidebarCollapsed(!sidebarCollapsed)}>
+              {sidebarCollapsed ? (
+                <div className="text-2xl animate-glow">🏪</div>
+              ) : (
+                <h1 className="text-xl sm:text-2xl font-bold text-white transform transition-all duration-300 hover:scale-110 hover:rotate-3 animate-glow">
+                  🏪 MK Shopping
+                </h1>
+              )}
               <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg blur opacity-30 group-hover:opacity-60 transition duration-300"></div>
             </div>
           </div>
           
-          {/* Smart Navigation with 3D Effects */}
+          {/* Navigation */}
           <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
             {navigation.map((item, index) => {
               const isActive = location.pathname === item.href;
@@ -98,33 +108,42 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     animationDelay: `${index * 0.1}s`,
                     perspective: '1000px'
                   }}
+                  title={sidebarCollapsed ? item.name : ''}
                 >
                   <div className={`transition-all duration-300 transform group-hover:scale-110 ${
                     isActive ? 'animate-bounce' : 'group-hover:rotate-12'
-                  }`}>
-                    <item.icon className="w-5 h-5 mr-3" />
+                  } ${sidebarCollapsed ? 'mr-0' : 'mr-3'}`}>
+                    <item.icon className="w-5 h-5" />
                   </div>
-                  <span className="transform transition-all duration-300 group-hover:translate-x-1">
-                    {item.name}
-                  </span>
-                  {isActive && (
-                    <div className="ml-auto w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
+                  {!sidebarCollapsed && (
+                    <>
+                      <span className="transform transition-all duration-300 group-hover:translate-x-1">
+                        {item.name}
+                      </span>
+                      {isActive && (
+                        <div className="ml-auto w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
+                      )}
+                    </>
                   )}
                 </Link>
               );
             })}
           </nav>
           
-          {/* 3D Footer Animation */}
+          {/* Footer */}
           <div className="p-4 border-t border-white/20 animate-slide-in-top">
             <div className="text-center text-white/50 text-xs transform hover:scale-105 transition-all duration-300 cursor-pointer">
-              <div className="animate-pulse">✨ Portal v2.0</div>
+              {sidebarCollapsed ? (
+                <div className="animate-pulse">✨</div>
+              ) : (
+                <div className="animate-pulse">✨ Portal v2.0</div>
+              )}
             </div>
           </div>
         </div>
       </div>
       
-      {/* Enhanced Overlay for mobile */}
+      {/* Overlay for mobile */}
       {sidebarOpen && (
         <div 
           className="lg:hidden fixed inset-0 bg-black/50 z-30 mt-16 backdrop-blur-sm animate-fade-in"
@@ -132,8 +151,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         />
       )}
       
-      {/* Main Content with Enhanced Animation */}
-      <div className="lg:ml-64 mt-16 min-h-screen relative z-10">
+      {/* Main Content */}
+      <div className={`mt-16 min-h-screen relative z-10 transition-all duration-500 ${
+        sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'
+      }`}>
         <main className="p-4 sm:p-8">
           <div className="animate-fade-in-up">
             {children}

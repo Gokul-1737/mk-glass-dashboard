@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { User, Settings, Bell, LogOut } from 'lucide-react';
+import { User, Settings, Bell, LogOut, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -13,7 +13,12 @@ import { Badge } from '@/components/ui/badge';
 import SettingsModal from './SettingsModal';
 import AdminPanel from './AdminPanel';
 
-const TopMenuBar = () => {
+interface TopMenuBarProps {
+  sidebarCollapse?: boolean;
+  onToggleSidebar?: () => void;
+}
+
+const TopMenuBar: React.FC<TopMenuBarProps> = ({ sidebarCollapsed, onToggleSidebar }) => {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [adminPanelOpen, setAdminPanelOpen] = useState(false);
 
@@ -32,25 +37,27 @@ const TopMenuBar = () => {
         </div>
         
         <div className="flex items-center space-x-4 relative z-10">
-          {/* 3D Animated Portal Title */}
+          {/* Navbar Toggle Button (Desktop) */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onToggleSidebar}
+            className="hidden lg:flex text-white/70 hover:text-white hover:bg-white/10 transform transition-all duration-300 hover:scale-110 hover:rotate-12"
+          >
+            <Menu className="w-5 h-5" />
+          </Button>
+          
+          {/* Portal Title */}
           <div className="relative group">
             <h1 className="text-xl font-bold text-white transform transition-all duration-500 hover:scale-110 animate-glow perspective-1000">
               🌟 MK Shopping Portal
             </h1>
             <div className="absolute -inset-2 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-lg blur opacity-0 group-hover:opacity-100 transition duration-500"></div>
           </div>
-          
-          {/* 3D Animated Live Badge */}
-          <div className="relative">
-            <Badge variant="secondary" className="bg-gradient-to-r from-green-500/30 to-emerald-500/30 text-green-300 border border-green-400/30 animate-pulse transform hover:scale-110 transition-all duration-300">
-              <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-ping" />
-              Live Portal
-            </Badge>
-          </div>
         </div>
         
         <div className="flex items-center space-x-4 relative z-10">
-          {/* 3D Animated Notifications */}
+          {/* Notifications */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="relative text-white/70 hover:text-white hover:bg-white/10 transform transition-all duration-300 hover:scale-110 hover:rotate-12 animate-float">
@@ -66,7 +73,7 @@ const TopMenuBar = () => {
               <div className="p-3">
                 <h3 className="font-medium text-white mb-2 flex items-center">
                   <div className="w-3 h-3 bg-blue-400 rounded-full mr-2 animate-pulse" />
-                  Smart Notifications
+                  📢 Smart Notifications
                 </h3>
                 <div className="space-y-2">
                   <div className="p-3 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-lg text-sm text-white/80 transform hover:scale-105 transition-all duration-300 border border-white/10">
@@ -83,7 +90,7 @@ const TopMenuBar = () => {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* 3D Animated Settings Button */}
+          {/* Settings Button */}
           <Button 
             variant="ghost" 
             size="sm" 
@@ -93,7 +100,7 @@ const TopMenuBar = () => {
             <Settings className="w-5 h-5 transform transition-all duration-500 hover:animate-spin" />
           </Button>
 
-          {/* 3D Animated User Menu */}
+          {/* User Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="text-white/70 hover:text-white hover:bg-white/10 transform transition-all duration-300 hover:scale-110 group">
@@ -102,7 +109,7 @@ const TopMenuBar = () => {
                     <User className="w-5 h-5 transform transition-all duration-300 group-hover:scale-110" />
                     <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full blur opacity-0 group-hover:opacity-50 transition duration-300"></div>
                   </div>
-                  <span className="transform transition-all duration-300 group-hover:translate-x-1">Admin</span>
+                  <span className="transform transition-all duration-300 group-hover:translate-x-1">👤 Admin</span>
                 </div>
               </Button>
             </DropdownMenuTrigger>
@@ -112,14 +119,14 @@ const TopMenuBar = () => {
                 className="text-white/80 hover:text-white hover:bg-white/10 transform transition-all duration-300 hover:scale-105"
               >
                 <User className="w-4 h-4 mr-2 transform hover:rotate-12 transition-all duration-300" />
-                Admin Panel
+                🔐 Admin Panel
               </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={() => setSettingsOpen(true)}
                 className="text-white/80 hover:text-white hover:bg-white/10 transform transition-all duration-300 hover:scale-105"
               >
                 <Settings className="w-4 h-4 mr-2 transform hover:rotate-90 transition-all duration-300" />
-                Settings
+                ⚙️ Settings
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-white/20" />
               <DropdownMenuItem 
@@ -127,7 +134,7 @@ const TopMenuBar = () => {
                 className="text-red-300 hover:text-red-200 hover:bg-red-500/10 transform transition-all duration-300 hover:scale-105"
               >
                 <LogOut className="w-4 h-4 mr-2 transform hover:-rotate-12 transition-all duration-300" />
-                Logout
+                🚪 Logout
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

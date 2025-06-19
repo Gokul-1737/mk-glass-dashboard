@@ -4,15 +4,20 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import GlassCard from '@/components/GlassCard';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar, TrendingUp, ShoppingCart, Edit, Plus } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar as CalendarIcon, TrendingUp, ShoppingCart, Edit, Plus } from 'lucide-react';
 import { useTodaySales } from '@/hooks/useSales';
 import { useSalesAnalytics } from '@/hooks/useProducts';
 import AddSaleModal from '@/components/AddSaleModal';
 import EditSaleModal from '@/components/EditSaleModal';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 const TodaySales = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingSale, setEditingSale] = useState(null);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const { data: todaySalesData, isLoading: salesLoading } = useTodaySales();
   const { data: analytics, isLoading: analyticsLoading } = useSalesAnalytics();
 
@@ -24,8 +29,17 @@ const TodaySales = () => {
     );
   }
 
+  // Filter sales data based on selected date
+  const filteredSalesData = todaySalesData?.filter(sale => {
+    const saleDate = new Date(sale.sale_date);
+    const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
+    const saleDateStr = format(saleDate, 'yyyy-MM-dd');
+    return saleDateStr === selectedDateStr;
+  }) || [];
+
   const totalSales = analytics?.reduce((sum, item) => sum + item.today_sales, 0) || 0;
-  const totalRevenue = todaySalesData?.reduce((sum, item) => sum + (item.quantity * item.sale_price), 0) || 0;
+  const totalRevenue = filteredSalesData?.reduce((sum, item) => sum + (item.quantity * item.sale_price), 0) || 0;
+  const selectedDateSales = filteredSalesData.length;
 
   const chartData = analytics?.map(item => ({
     name: item.name.split(' ').slice(0, 2).join(' '),
@@ -35,7 +49,7 @@ const TodaySales = () => {
   return (
     <div className="space-y-4 sm:space-y-8 animate-fade-in p-4 sm:p-0">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between animate-slide-in-top gap-4">
-        <h1 className="text-2xl sm:text-3xl font-bold text-white">Today's Sales</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-white">Sales Data</h1>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
           <Button
             onClick={() => setIsAddModalOpen(true)}
@@ -44,10 +58,36 @@ const TodaySales = () => {
             <Plus className="w-4 h-4 mr-2" />
             Add Sale
           </Button>
-          <div className="flex items-center text-white/70">
-            <Calendar className="w-5 h-5 mr-2" />
-            {new Date().toLocaleDateString()}
-          </div>
+          
+          {/* Date Picker */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-full sm:w-[240px] justify-start text-left font-normal bg-white/10 border-white/20 text-white hover:bg-white/20",
+                  !selectedDate && "text-white/50"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0 bg-white/10 backdrop-blur-md border-white/20" align="start">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={(date) => date && setSelectedDate(date)}
+                initialFocus
+                className="pointer-events-auto text-white"
+                classNames={{
+                  day_selected: "bg-blue-500 text-white hover:bg-blue-600",
+                  day_today: "bg-white/20 text-white font-bold",
+                  day: "text-white hover:bg-white/10"
+                }}
+              />
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
       
@@ -56,8 +96,8 @@ const TodaySales = () => {
         <GlassCard className="p-4 sm:p-6 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-white/70 text-sm">Total Units Sold</p>
-              <p className="text-xl sm:text-2xl font-bold text-white mt-1">{totalSales}</p>
+              <p className="text-white/70 text-sm">Selected Date Sales</p>
+              <p className="text-xl sm:text-2xl font-bold text-white mt-1">{selectedDateSales}</p>
             </div>
             <div className="p-3 rounded-lg bg-gradient-to-r from-green-500 to-teal-600">
               <ShoppingCart className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
@@ -68,7 +108,7 @@ const TodaySales = () => {
         <GlassCard className="p-4 sm:p-6 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-white/70 text-sm">Total Revenue</p>
+              <p className="text-white/70 text-sm">Selected Date Revenue</p>
               <p className="text-xl sm:text-2xl font-bold text-white mt-1">${totalRevenue.toLocaleString()}</p>
             </div>
             <div className="p-3 rounded-lg bg-gradient-to-r from-purple-500 to-pink-600">
@@ -82,11 +122,11 @@ const TodaySales = () => {
             <div>
               <p className="text-white/70 text-sm">Average Order Value</p>
               <p className="text-xl sm:text-2xl font-bold text-white mt-1">
-                ${totalSales > 0 ? Math.round(totalRevenue / totalSales) : 0}
+                ${selectedDateSales > 0 ? Math.round(totalRevenue / selectedDateSales) : 0}
               </p>
             </div>
             <div className="p-3 rounded-lg bg-gradient-to-r from-blue-500 to-cyan-600">
-              <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+              <CalendarIcon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
           </div>
         </GlassCard>
@@ -122,9 +162,11 @@ const TodaySales = () => {
         
         {/* Sales List */}
         <GlassCard className="p-4 sm:p-6 animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
-          <h3 className="text-lg sm:text-xl font-semibold text-white mb-4">Today's Sales Details</h3>
+          <h3 className="text-lg sm:text-xl font-semibold text-white mb-4">
+            Sales for {format(selectedDate, "MMM dd, yyyy")}
+          </h3>
           <div className="space-y-3 max-h-60 sm:max-h-80 overflow-y-auto">
-            {todaySalesData?.map((sale, index) => (
+            {filteredSalesData?.map((sale, index) => (
               <div 
                 key={sale.id} 
                 className="flex items-center justify-between p-3 sm:p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-all duration-200"
@@ -151,9 +193,9 @@ const TodaySales = () => {
                 </div>
               </div>
             ))}
-            {(!todaySalesData || todaySalesData.length === 0) && (
+            {(!filteredSalesData || filteredSalesData.length === 0) && (
               <div className="text-center py-8 text-white/60">
-                No sales recorded today yet.
+                No sales recorded for {format(selectedDate, "MMM dd, yyyy")}.
               </div>
             )}
           </div>
