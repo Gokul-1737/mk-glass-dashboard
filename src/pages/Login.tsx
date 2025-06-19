@@ -135,8 +135,8 @@ const Login = () => {
               </div>
             </div>
           </form>
-
-
+        </GlassCard>
+      </div>
     </div>
   );
 };

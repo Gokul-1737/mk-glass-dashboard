@@ -49,27 +49,27 @@ const Dashboard = () => {
   const pieColors = ['#8B5CF6', '#06B6D4', '#10B981', '#F59E0B', '#EF4444'];
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-4 sm:space-y-8 animate-fade-in p-4 sm:p-0">
       <div className="flex items-center justify-between animate-slide-in-top">
-        <h1 className="text-3xl font-bold text-white">Dashboard</h1>
-        <p className="text-white/70">Welcome to MK Shopping Portal</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-white">Dashboard</h1>
+        <p className="text-white/70 hidden sm:block">Welcome to MK Shopping Portal</p>
       </div>
       
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {stats.map((stat, index) => (
           <GlassCard 
             key={index} 
-            className="p-6 hover:scale-105 transition-all duration-300 animate-fade-in-up"
+            className="p-4 sm:p-6 hover:scale-105 transition-all duration-300 animate-fade-in-up hover-lift"
             style={{ animationDelay: `${index * 0.1}s` }}
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-white/70 text-sm">{stat.title}</p>
-                <p className="text-2xl font-bold text-white mt-1">{stat.value}</p>
+                <p className="text-white/70 text-xs sm:text-sm">{stat.title}</p>
+                <p className="text-lg sm:text-2xl font-bold text-white mt-1">{stat.value}</p>
               </div>
-              <div className={`p-3 rounded-lg bg-gradient-to-r ${stat.color}`}>
-                <stat.icon className="w-6 h-6 text-white" />
+              <div className={`p-2 sm:p-3 rounded-lg bg-gradient-to-r ${stat.color} animate-glow`}>
+                <stat.icon className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
               </div>
             </div>
           </GlassCard>
@@ -77,15 +77,15 @@ const Dashboard = () => {
       </div>
       
       {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Sales Chart */}
-        <GlassCard className="p-6 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
-          <h3 className="text-xl font-semibold text-white mb-4">Weekly Sales Trend</h3>
-          <ResponsiveContainer width="100%" height={300}>
+        <GlassCard className="p-4 sm:p-6 animate-fade-in-up hover-lift" style={{ animationDelay: '0.4s' }}>
+          <h3 className="text-lg sm:text-xl font-semibold text-white mb-4">Weekly Sales Trend</h3>
+          <ResponsiveContainer width="100%" height={250}>
             <BarChart data={salesData}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-              <XAxis dataKey="name" stroke="rgba(255,255,255,0.7)" />
-              <YAxis stroke="rgba(255,255,255,0.7)" />
+              <XAxis dataKey="name" stroke="rgba(255,255,255,0.7)" fontSize={12} />
+              <YAxis stroke="rgba(255,255,255,0.7)" fontSize={12} />
               <Tooltip 
                 contentStyle={{ 
                   backgroundColor: 'rgba(255,255,255,0.1)', 
@@ -106,16 +106,16 @@ const Dashboard = () => {
         </GlassCard>
         
         {/* Category Distribution */}
-        <GlassCard className="p-6 animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
-          <h3 className="text-xl font-semibold text-white mb-4">Sales by Category</h3>
-          <ResponsiveContainer width="100%" height={300}>
+        <GlassCard className="p-4 sm:p-6 animate-fade-in-up hover-lift" style={{ animationDelay: '0.5s' }}>
+          <h3 className="text-lg sm:text-xl font-semibold text-white mb-4">Sales by Category</h3>
+          <ResponsiveContainer width="100%" height={200}>
             <PieChart>
               <Pie
                 data={categoryData}
                 cx="50%"
                 cy="50%"
-                innerRadius={60}
-                outerRadius={100}
+                innerRadius={40}
+                outerRadius={80}
                 paddingAngle={5}
                 dataKey="value"
               >
@@ -141,9 +141,9 @@ const Dashboard = () => {
                     className="w-3 h-3 rounded-full mr-2" 
                     style={{ backgroundColor: pieColors[index % pieColors.length] }} 
                   />
-                  <span className="text-white/70 text-sm">{item.name}</span>
+                  <span className="text-white/70 text-xs sm:text-sm">{item.name}</span>
                 </div>
-                <span className="text-white font-medium">{item.value}</span>
+                <span className="text-white font-medium text-sm">{item.value}</span>
               </div>
             ))}
           </div>

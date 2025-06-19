@@ -10,6 +10,10 @@ export interface Sale {
   sale_date: string;
   sale_price: number;
   created_at: string;
+  products?: {
+    name: string;
+    category: string;
+  };
 }
 
 export const useTodaySales = () => {
@@ -101,6 +105,59 @@ export const useAddSale = () => {
     },
     onError: (error) => {
       toast.error('Failed to record sale: ' + error.message);
+    }
+  });
+};
+
+export const useUpdateSale = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: Partial<Sale> & { id: string }) => {
+      const { data, error } = await supabase
+        .from('sales')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['today-sales'] });
+      queryClient.invalidateQueries({ queryKey: ['monthly-sales'] });
+      queryClient.invalidateQueries({ queryKey: ['yearly-sales'] });
+      queryClient.invalidateQueries({ queryKey: ['sales-analytics'] });
+      toast.success('Sale updated successfully!');
+    },
+    onError: (error) => {
+      toast.error('Failed to update sale: ' + error.message);
+    }
+  });
+};
+
+export const useDeleteSale = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('sales')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['today-sales'] });
+      queryClient.invalidateQueries({ queryKey: ['monthly-sales'] });
+      queryClient.invalidateQueries({ queryKey: ['yearly-sales'] });
+      queryClient.invalidateQueries({ queryKey: ['sales-analytics'] });
+      toast.success('Sale deleted successfully!');
+    },
+    onError: (error) => {
+      toast.error('Failed to delete sale: ' + error.message);
     }
   });
 };

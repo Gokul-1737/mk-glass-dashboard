@@ -1,7 +1,8 @@
 
 import React from 'react';
 import { useLocation, Link } from 'react-router-dom';
-import { Home, Package, TrendingUp, Calendar, FileDown } from 'lucide-react';
+import { Home, Package, TrendingUp, Calendar, FileDown, Menu, X } from 'lucide-react';
+import { useState } from 'react';
 import TopMenuBar from './TopMenuBar';
 
 interface LayoutProps {
@@ -10,6 +11,7 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
@@ -33,12 +35,22 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* Top Menu Bar */}
       <TopMenuBar />
       
+      {/* Mobile Menu Button */}
+      <button
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+        className="lg:hidden fixed top-20 left-4 z-50 p-2 rounded-lg bg-white/10 backdrop-blur-md border border-white/20 text-white"
+      >
+        {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+      </button>
+      
       {/* Sidebar */}
-      <div className="fixed inset-y-0 left-0 w-64 bg-white/10 backdrop-blur-md border-r border-white/20 z-40 mt-16 animate-slide-in-left">
+      <div className={`fixed inset-y-0 left-0 w-64 bg-white/10 backdrop-blur-md border-r border-white/20 z-40 mt-16 transform transition-transform duration-300 ease-in-out ${
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      } lg:translate-x-0 animate-slide-in-left`}>
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center justify-center h-16 px-4 border-b border-white/20">
-            <h1 className="text-2xl font-bold text-white">MK Shopping</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-white">MK Shopping</h1>
           </div>
           
           {/* Navigation */}
@@ -49,6 +61,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <Link
                   key={item.name}
                   to={item.href}
+                  onClick={() => setSidebarOpen(false)}
                   className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-300 transform hover:scale-105 animate-fade-in ${
                     isActive
                       ? 'bg-white/20 text-white border border-white/30 shadow-lg'
@@ -65,9 +78,17 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </div>
       </div>
       
+      {/* Overlay for mobile */}
+      {sidebarOpen && (
+        <div 
+          className="lg:hidden fixed inset-0 bg-black/50 z-30 mt-16"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+      
       {/* Main Content */}
-      <div className="ml-64 mt-16 min-h-screen">
-        <main className="p-8 relative z-10">
+      <div className="lg:ml-64 mt-16 min-h-screen">
+        <main className="p-4 sm:p-8 relative z-10">
           <div className="animate-fade-in-up">
             {children}
           </div>
