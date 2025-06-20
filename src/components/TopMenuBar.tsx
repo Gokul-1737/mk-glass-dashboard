@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { User, Settings, Bell, LogOut, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -14,7 +13,7 @@ import SettingsModal from './SettingsModal';
 import AdminPanel from './AdminPanel';
 
 interface TopMenuBarProps {
-  sidebarCollapse?: boolean;
+  sidebarCollapsed?: boolean;
   onToggleSidebar?: () => void;
 }
 
